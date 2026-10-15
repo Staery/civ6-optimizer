@@ -5,6 +5,7 @@
 [![CI](https://github.com/Staery/civ6-optimizer/actions/workflows/ci.yml/badge.svg)](https://github.com/Staery/civ6-optimizer/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-3776AB?logo=python&logoColor=white)](https://www.python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+![Game](https://img.shields.io/badge/Civilization%20VI-1.0.12.54-C9A227)
 ![Ruleset](https://img.shields.io/badge/ruleset-Gathering%20Storm%20%2B%20New%20Frontier-C9A227)
 ![Languages](https://img.shields.io/badge/UI-EN%20·%20RU-8B5CF6)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -19,6 +20,10 @@ The map comes **straight from your game** through a small Lua mod, or you can dr
 Everything runs locally: a Python server and a web page in your browser, with no account and no internet connection.
 The interface is in **English and Russian** (switch in the top-right corner). The optimizer is plain Python with
 no heavy dependencies and is covered by **127 tests**.
+
+> **Game version.** Made and tested with **Civilization VI 1.0.12.54** (Steam build 15296837) with
+> **Gathering Storm**, the **New Frontier Pass** and the **Leader Pass**. The rules follow Gathering Storm;
+> *Rise and Fall* alone and the base game without expansions are not supported. See [Project status](#project-status).
 
 ![The optimizer with the sample map: a capital with its districts, a Government Plaza and wonder sites](docs/screenshot.png)
 
@@ -183,7 +188,8 @@ Dam or Canal is added to the search if there is a legal tile for it, because eac
 * **Windows 10/11.** The optimizer itself is cross-platform; the launch scripts and live import from the game assume Windows.
 * **Python 3.11 or newer** ([python.org](https://www.python.org/downloads/); tick *Add python.exe to PATH* during setup).
 * A modern browser (Chrome, Edge, Firefox).
-* *For importing a game:* Civilization VI with **Gathering Storm**. **New Frontier Pass** content is supported too.
+* *For importing a game:* Civilization VI **1.0.12.54** or newer with **Gathering Storm**. Content of the **New Frontier Pass** and
+  the **Leader Pass** is supported too.
 
 ## Installation
 
@@ -342,12 +348,44 @@ The same checks run in GitHub Actions on Python 3.11, 3.12 and 3.13 (`.github/wo
 For development on Windows there is a two-server setup: a dev server on port 8001 with auto-reload, a gate
 script (tests + smoke) and a live server on port 8000. See [scripts/README_TESTING.md](scripts/README_TESTING.md) (in Russian).
 
-## Limitations
+## Project status
 
-* It plans districts, not tile improvements or the order of builders' work.
-* Yields of buildings, great people and most wonders are approximate, and policies that are not about adjacency are not modelled.
-* The search is a heuristic for empires and large cities. Only small single-city layouts are proven optimal.
-* Maps from mods with custom terrain may produce `warnings` on import.
+Version 0.1: the tool is used in real games and covers the whole planning loop. The rules are written for
+**Civilization VI 1.0.12.54** (Gathering Storm + New Frontier Pass + Leader Pass); a later game patch that changes
+adjacency numbers needs a matching change in `backend/rules/`.
+
+### Done
+
+- [x] Adjacency engine for all districts, unique districts and their special rules (Seowon, Hansa, Observatory, Acropolis…)
+- [x] District layout for one city with a proof of optimality on small inputs
+- [x] Joint layout for the whole empire, regional overlap of Factories and Zoos
+- [x] New city sites chosen by the districts they enable; capital site from the first Settler
+- [x] City specialisation by victory type, district cap and build order
+- [x] 51 civilizations and 75 leaders (base game, expansions, New Frontier Pass, Leader Pass personas), pantheons, beliefs, secret societies, adjacency policy cards
+- [x] World and natural wonders, housing and amenities, governors, neighbours and city-states
+- [x] In-game map exporter mod, live import every turn, FireTuner fallback
+- [x] Hex map editor, JSON save/load
+- [x] English and Russian interface and API
+- [x] Tests (127) and an API smoke test; CI on GitHub Actions
+
+### Not done yet / known gaps
+
+- [ ] Nine disputed adjacency values marked `VALIDATE:` in the code still need checking against the game
+- [ ] Tile improvements and the order of builders' work are not planned (only districts)
+- [ ] Buildings, great people and most wonders are approximate yields; policy cards that do not change adjacency are not modelled
+- [ ] Policy cards added by mods (e.g. *Extended Policy Cards*) are not modelled
+- [ ] Only small single-city layouts are proven optimal; empires and large cities use a heuristic
+- [ ] Maps from mods with custom terrain or features produce `warnings` on import
+- [ ] The UI is a desktop page: no layout for phones
+
+### Plans
+
+- Check every `VALIDATE:` value in the game and remove the markers
+- Optional exact solver (OR-Tools CP-SAT, already an optional dependency) for larger single-city and cluster layouts
+- Plan tile improvements together with districts (farms for Neighborhood appeal, mines for Gaul and Hansa, and so on)
+- Show the plan inside the game as map pins, so you do not need to switch to the browser
+- Model more policy cards, including popular policy mods
+- A downloadable build with Python included, like the TF3 Planner
 
 ## License
 
