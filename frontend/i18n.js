@@ -1,0 +1,346 @@
+"use strict";
+
+// ===========================================================================
+// Interface language (Russian / English)
+// ===========================================================================
+// The interface is written in Russian; I18N_EN maps every Russian string to English.
+// Strings with values use numbered placeholders: tr("Город {0}", n). Static text in
+// index.html is translated by localizeDom(); API responses come back already translated
+// because every request carries the X-Lang header (see apiFetch).
+// The block between the I18N_EN markers is plain JSON (tests/test_frontend_i18n.py reads it).
+
+const LANG_KEY = "civ6opt.lang";
+
+function detectLang() {
+  try {
+    const saved = localStorage.getItem(LANG_KEY);
+    if (saved === "ru" || saved === "en") return saved;
+  } catch (e) { /* storage blocked: fall through */ }
+  const nav = (navigator.languages && navigator.languages[0]) || navigator.language || "";
+  return /^(ru|be|uk|kk)/i.test(nav) ? "ru" : "en";
+}
+
+let LANG = detectLang();
+
+const I18N_EN = /*I18N_EN*/{
+  "Город {0}": "City {0}",
+  "Поселенец": "Settler",
+  "новый #{0}": "new #{0}",
+  "чудо ★{0}": "wonder ★{0}",
+  "  ·  до центра: {0}": "  ·  to the center: {0}",
+  "  ·  ресурс: {0}": "  ·  resource: {0}",
+  " кл.)": " tiles)",
+  "  ·  чудо природы: {0}": "  ·  natural wonder: {0}",
+  "чудо света": "world wonder",
+  "  ·  🏛️ {0} (построено)": "  ·  🏛️ {0} (built)",
+  "  ·  🏛️ {0} (★{1}): {2} · риск ИИ {3}": "  ·  🏛️ {0} (★{1}): {2} · AI risk {3}",
+  "Навигация": "Navigation",
+  "Двигать карту (кисть выкл.)": "Move the map (brush off)",
+  "Террейн": "Terrain",
+  "Особенности": "Features",
+  "нет": "none",
+  "Улучшения": "Improvements",
+  "Переключатели": "Toggles",
+  "Холмы": "Hills",
+  "Река": "River",
+  "Чудо света": "World wonder",
+  "Вулкан": "Volcano",
+  "Чудеса природы (число = клеток)": "Natural wonders (number = tiles)",
+  "Ресурсы (•=бонус ●=роскошь ●=страт.)": "Resources (•=bonus ●=luxury ●=strategic)",
+  "Владение клеткой": "Tile ownership",
+  "Своя": "Own",
+  "Чужая/занято": "Foreign/taken",
+  "Ничья": "Nobody's",
+  "Существующие районы": "Existing districts",
+  "<div class=\"lg-h\">Районы</div>": "<div class=\"lg-h\">Districts</div>",
+  "<div class=\"lg-h\">Особенности</div>": "<div class=\"lg-h\">Features</div>",
+  "<div class=\"lg-h\">Обозначения</div>": "<div class=\"lg-h\">Symbols</div>",
+  "<div class=\"lg-row wide\"><span class=\"lg-ic\">🌟</span><span>чудо природы (Святое место +2 за каждую соседнюю клетку)</span></div>": "<div class=\"lg-row wide\"><span class=\"lg-ic\">🌟</span><span>natural wonder (Holy Site +2 for each adjacent tile)</span></div>",
+  "<div class=\"lg-row\"><span class=\"lg-line\"></span><span>река (граница клетки)</span></div>": "<div class=\"lg-row\"><span class=\"lg-line\"></span><span>river (tile edge)</span></div>",
+  "<div class=\"lg-row\"><span class=\"lg-ic\">◣</span><span>холмы</span></div>": "<div class=\"lg-row\"><span class=\"lg-ic\">◣</span><span>hills</span></div>",
+  "<div class=\"lg-row\"><span class=\"lg-dot\" style=\"background:#f2f2f2\"></span><span>ресурс: бонусный</span></div>": "<div class=\"lg-row\"><span class=\"lg-dot\" style=\"background:#f2f2f2\"></span><span>resource: bonus</span></div>",
+  "<div class=\"lg-row\"><span class=\"lg-dot\" style=\"background:#cf6ee0\"></span><span>ресурс: роскошь</span></div>": "<div class=\"lg-row\"><span class=\"lg-dot\" style=\"background:#cf6ee0\"></span><span>resource: luxury</span></div>",
+  "<div class=\"lg-row\"><span class=\"lg-dot\" style=\"background:#ef5350\"></span><span>ресурс: стратегический</span></div>": "<div class=\"lg-row\"><span class=\"lg-dot\" style=\"background:#ef5350\"></span><span>resource: strategic</span></div>",
+  "<div class=\"lg-row\"><span class=\"lg-ring\"></span><span>рекомендация (+бонус)</span></div>": "<div class=\"lg-row\"><span class=\"lg-ring\"></span><span>recommendation (+bonus)</span></div>",
+  "<div class=\"lg-h\">Чужие границы (не строить)</div>": "<div class=\"lg-h\">Foreign borders (can't build)</div>",
+  "<div class=\"lg-row\"><span class=\"lg-blocked\" style=\"background:rgba(200,50,40,0.4);border-color:rgba(220,70,60,0.8)\"></span><span>чужая цивилизация</span></div>": "<div class=\"lg-row\"><span class=\"lg-blocked\" style=\"background:rgba(200,50,40,0.4);border-color:rgba(220,70,60,0.8)\"></span><span>foreign civilization</span></div>",
+  "<div class=\"lg-row\"><span class=\"lg-blocked\" style=\"background:rgba(230,170,40,0.45);border-color:rgba(240,190,60,0.9)\"></span><span>город-государство</span></div>": "<div class=\"lg-row\"><span class=\"lg-blocked\" style=\"background:rgba(230,170,40,0.45);border-color:rgba(240,190,60,0.9)\"></span><span>city-state</span></div>",
+  "<div class=\"lg-row\"><span class=\"lg-blocked\" style=\"background:rgba(150,90,200,0.45);border-color:rgba(180,120,230,0.9)\"></span><span>вольный город</span></div>": "<div class=\"lg-row\"><span class=\"lg-blocked\" style=\"background:rgba(150,90,200,0.45);border-color:rgba(180,120,230,0.9)\"></span><span>free city</span></div>",
+  "✓ учитывается в расчёте. ": "✓ included in the score. ",
+  "• совет (на расчёт размещения не влияет). ": "• advice only (does not affect placement). ",
+  "— нет —": "— none —",
+  "Выбери циву — подскажу предпочтительную победу и веса.": "Pick a civ — I'll suggest a victory type and weights.",
+  "Рекомендуемая победа: <b>{0}</b>. Районы: {1}.": "Suggested victory: <b>{0}</b>. Districts: {1}.",
+  "<br>Уникальное: {0}": "<br>Unique: {0}",
+  "<br><span style=\"color:var(--accent)\">✓ применено: веса и районы под {0} победу.</span>": "<br><span style=\"color:var(--accent)\">✓ applied: weights and districts for a {0} victory.</span>",
+  "Прочие районы": "Other districts",
+  "Акведук/Плотина/Канал и Правительственная площадь добавляются автоматически, когда полезны.": "Aqueduct/Dam/Canal and the Government Plaza are added automatically when they help.",
+  "<p class=\"hint\">нет</p>": "<p class=\"hint\">none</p>",
+  "Нужен хотя бы один город (⭐) или Поселенец. Поставь центр города или импортируй партию.": "You need at least one city (⭐) or a Settler. Place a city center or import a game.",
+  "Отметь хотя бы один район для расчёта.": "Tick at least one district to optimize.",
+  "Городов ещё нет. Поставь «+городов» больше 0, чтобы спланировать города, или поставь центр города (⭐).": "No cities yet. Set \"+cities\" above 0 to plan cities, or place a city center (⭐).",
+  "Планирую…": "Planning…",
+  "Считаю…": "Calculating…",
+  "Ошибка оптимизации: ": "Optimization error: ",
+  "▶ Оптимизировать": "▶ Optimize",
+  " · теряем с клетки −{0}": " · tile loss −{0}",
+  " <span class=\"phase later\" title=\"район запланирован на вырост\">⏳ с насел. {0}</span>": " <span class=\"phase later\" title=\"planned for later growth\">⏳ at pop. {0}</span>",
+  " <span class=\"phase now\" title=\"можно строить уже сейчас\">▶ сейчас</span>": " <span class=\"phase now\" title=\"can be built right now\">▶ now</span>",
+  "<div class=\"summary\" style=\"margin-top:8px\">🧩 Покрытие империи</div>": "<div class=\"summary\" style=\"margin-top:8px\">🧩 Empire coverage</div>",
+  "🏛️ Правит. площадь: <b>{0}</b>": "🏛️ Gov. Plaza: <b>{0}</b>",
+  "🤝 Дипквартал: <b>{0}</b>": "🤝 Dipl. Quarter: <b>{0}</b>",
+  "<span class=\"badge opt\">оптимум доказан</span>": "<span class=\"badge opt\">proven optimal</span>",
+  "<span class=\"badge heur\">эвристика</span>": "<span class=\"badge heur\">heuristic</span>",
+  "<div class=\"summary\">🗺️ Рекомендованные НОВЫЕ города ({0}) — ⭐ на карте</div>": "<div class=\"summary\">🗺️ Suggested NEW cities ({0}) — ⭐ on the map</div>",
+  "<div class=\"place-row\"><span class=\"d\">{0}⭐ новый #{1} ({2},{3})</span>": "<div class=\"place-row\"><span class=\"d\">{0}⭐ new #{1} ({2},{3})</span>",
+  "<span class=\"y\">+{0} районы</span></div>": "<span class=\"y\">+{0} districts</span></div>",
+  "<div class=\"hint\" style=\"margin:2px 0 8px\">Места выбраны по приросту соседства районов (с учётом стыков с соседями) + качеству клетки. Основывай города на ⭐ и строй районы по плану ниже.</div>": "<div class=\"hint\" style=\"margin:2px 0 8px\">Sites are chosen by the district adjacency they add (including borders with neighbours) + tile quality. Found cities on the ⭐ and build districts as planned below.</div>",
+  "<div class=\"summary\">{0} &nbsp; метод: {1}<br>суммарный счёт: <b>{2}</b>": "<div class=\"summary\">{0} &nbsp; method: {1}<br>total score: <b>{2}</b>",
+  " · потеря клеток −{0} · чистыми <b>{1}</b>": " · tile loss −{0} · net <b>{1}</b>",
+  " · региональное перекрытие +{0}": " · regional overlap +{0}",
+  "<br>со зданиями района ≈ <b>{0}</b> (соседство {1} + здания {2})": "<br>with district buildings ≈ <b>{0}</b> (adjacency {1} + buildings {2})",
+  " · городов: {0}": " · cities: {0}",
+  "<div class=\"hint\">Лимит районов: население неизвестно — порядок постройки ориентировочный.</div>": "<div class=\"hint\">District cap: population unknown — the build order is approximate.</div>",
+  "<div class=\"hint\">Лимит районов: можно строить все {0} (насел. {1}).</div>": "<div class=\"hint\">District cap: all {0} can be built (pop. {1}).</div>",
+  "<div class=\"hint\">Лимит районов: <b>сейчас {0}</b>, в очереди {1} «на вырост» (насел. {2}). ⏳ = ждёт нужного населения.</div>": "<div class=\"hint\">District cap: <b>{0} now</b>, {1} queued \"for growth\" (pop. {2}). ⏳ = waiting for population.</div>",
+  " · клеток {0}": " · tiles {0}",
+  "<div class=\"city-head\">{0}🏛️ {1}{2} <span>счёт {3}{4}</span></div>": "<div class=\"city-head\">{0}🏛️ {1}{2} <span>score {3}{4}</span></div>",
+  "<div class=\"hint\">нет размещений</div>": "<div class=\"hint\">no placements</div>",
+  "<div class=\"totals\">Итоги выходов: {0}</div>": "<div class=\"totals\">Total yields: {0}</div>",
+  "<div class=\"totals\" style=\"color:#e88\">Некуда поставить: {0}</div>": "<div class=\"totals\" style=\"color:#e88\">Nowhere to place: {0}</div>",
+  "<div class=\"hint\" style=\"color:#46d3c0\">⚙️ В расчёт добавлена инфраструктура для синергии: {0} (напр., Акведук/Дамба/Канал дают +2 произв. соседней Промзоне) — она размещена в общем оптимуме.</div>": "<div class=\"hint\" style=\"color:#46d3c0\">⚙️ Infrastructure added for synergy: {0} (e.g. an Aqueduct/Dam/Canal gives +2 Production to an adjacent Industrial Zone) — placed as part of the joint optimum.</div>",
+  "<div class=\"summary\" style=\"margin-top:8px\">🌐 Соседи и угрозы</div>": "<div class=\"summary\" style=\"margin-top:8px\">🌐 Neighbours and threats</div>",
+  "<div class=\"hint\" style=\"margin-top:3px\"><b>Соперники рядом:</b></div>": "<div class=\"hint\" style=\"margin-top:3px\"><b>Rivals nearby:</b></div>",
+  "цива неизвестна (импорт с модом)": "civ unknown (import with the mod)",
+  "<div class=\"place-row\"><span class=\"d\">⚔️ {0} ({1} кл.)</span><span class=\"y\">{2}</span></div>": "<div class=\"place-row\"><span class=\"d\">⚔️ {0} ({1} tiles)</span><span class=\"y\">{2}</span></div>",
+  "<div class=\"hint\" style=\"margin-top:3px\"><b>Города-государства рядом:</b></div>": "<div class=\"hint\" style=\"margin-top:3px\"><b>City-states nearby:</b></div>",
+  "тип неизвестен (импорт с модом)": "type unknown (import with the mod)",
+  "<div class=\"place-row\"><span class=\"d\">🏛️ {0} ({1} кл.)</span><span class=\"y\">{2}</span></div>": "<div class=\"place-row\"><span class=\"d\">🏛️ {0} ({1} tiles)</span><span class=\"y\">{2}</span></div>",
+  "<div class=\"summary\" style=\"margin-top:8px\">🧭 План города: рост, довольство, что ещё построить</div>": "<div class=\"summary\" style=\"margin-top:8px\">🧭 City plan: growth, amenities, what else to build</div>",
+  "<div class=\"hint\">🏠 жильё {0}, запас {1} · <span style=\"color:{2}\">{3}</span> · лучший Квартал +{4} ({5})</div>": "<div class=\"hint\">🏠 Housing {0}, headroom {1} · <span style=\"color:{2}\">{3}</span> · best Neighborhood +{4} ({5})</div>",
+  "<div class=\"hint\">😊 довольство: нужно {0}, есть {1}, баланс {2} · <span style=\"color:{3}\">{4}</span></div>": "<div class=\"hint\">😊 Amenities: need {0}, have {1}, balance {2} · <span style=\"color:{3}\">{4}</span></div>",
+  " на ({0},{1})": " at ({0},{1})",
+  "<div class=\"hint\" style=\"color:#e6b86a\">➕ построй {0}{1} — {2}</div>": "<div class=\"hint\" style=\"color:#e6b86a\">➕ build a {0}{1} — {2}</div>",
+  "<div class=\"hint\" style=\"color:#ffd24a\">👑 Губернатор: <b>{0}</b> — {1}</div>": "<div class=\"hint\" style=\"color:#ffd24a\">👑 Governor: <b>{0}</b> — {1}</div>",
+  "<div class=\"hint\" style=\"color:#9fe0b0;margin-top:6px\">🛐 Рекомендации по пантеону/верованиям/политикам — в секциях «Религия» и «Политики» выше (раскрываются автоматически).</div>": "<div class=\"hint\" style=\"color:#9fe0b0;margin-top:6px\">🛐 Pantheon/belief/policy advice is in the Religion and Policies sections above (they open automatically).</div>",
+  "<div class=\"hint\" style=\"color:#c89bff;margin-top:4px\">🕯️ Тайное общество: <b>{0}</b> — {1}</div>": "<div class=\"hint\" style=\"color:#c89bff;margin-top:4px\">🕯️ Secret society: <b>{0}</b> — {1}</div>",
+  "<div class=\"hint\" style=\"color:#c89bff\">⚡ В партии включены Тайные общества (обнаружены лей-линии) — выбери своё общество в панели слева.</div>": "<div class=\"hint\" style=\"color:#c89bff\">⚡ Secret Societies are on in this game (ley lines found) — pick your society in the left panel.</div>",
+  "<div class=\"hint\" style=\"margin-top:4px\">🏛️ чудеса на карте (★ценность, цвет = риск ИИ; ставь Театр рядом — +2 культуры):</div>": "<div class=\"hint\" style=\"margin-top:4px\">🏛️ wonders on the map (★value, colour = AI risk; put a Theater Square next to them — +2 Culture):</div>",
+  "<div class=\"hint\">🏛️ <b>{0}</b> ★{1} на ({2},{3}) — {4}": "<div class=\"hint\">🏛️ <b>{0}</b> ★{1} at ({2},{3}) — {4}",
+  " · риск ИИ: <span style=\"color:{0}\">{1}</span>": " · AI risk: <span style=\"color:{0}\">{1}</span>",
+  " · <a href=\"#\" onclick=\"markWonderTaken('{0}');return false\">занято ИИ ✖</a></div>": " · <a href=\"#\" onclick=\"markWonderTaken('{0}');return false\">taken by AI ✖</a></div>",
+  "<div class=\"hint\">Исключены (заняты ИИ): {0} · <a href=\"#\" onclick=\"resetTakenWonders();return false\">сбросить</a></div>": "<div class=\"hint\">Excluded (taken by AI): {0} · <a href=\"#\" onclick=\"resetTakenWonders();return false\">reset</a></div>",
+  "<span class=\"a-alt\">Нажми «▶ Оптимизировать» — подберём под твою карту.</span>": "<span class=\"a-alt\">Press \"▶ Optimize\" — we'll match it to your map.</span>",
+  "<span class=\"a-h\">👉 Под твою карту:</span><br>": "<span class=\"a-h\">👉 For your map:</span><br>",
+  "<span class=\"a-alt\">добавь Святое место/Кампус — подскажем верования под карту</span>": "<span class=\"a-alt\">add a Holy Site/Campus — we'll suggest beliefs for your map</span>",
+  "<br><span class=\"a-h\">🏆 Мета сообщества:</span><br>": "<br><span class=\"a-h\">🏆 Community meta:</span><br>",
+  "<span class=\"a-h\">👉 По карте: {0}</span><br>{1}": "<span class=\"a-h\">👉 For your map: {0}</span><br>{1}",
+  "<br><span class=\"a-alt\">· или {0} — {1}</span>": "<br><span class=\"a-alt\">· or {0} — {1}</span>",
+  "{0}<span class=\"a-h\">🚀 Мета: {1}</span> — <span class=\"a-alt\">{2}</span>": "{0}<span class=\"a-h\">🚀 Meta: {1}</span> — <span class=\"a-alt\">{2}</span>",
+  "<span class=\"a-alt\">подходящего пантеона по карте не нашлось</span>": "<span class=\"a-alt\">no pantheon fits your map</span>",
+  "<span class=\"a-h\">👉 Под твои районы:</span><br>": "<span class=\"a-h\">👉 For your districts:</span><br>",
+  "<span class=\"a-alt\">специализированных районов для карт ещё нет</span>": "<span class=\"a-alt\">no specialty districts for policy cards yet</span>",
+  "Поселенец не найден. Импортируй партию «🔄 Из игры (live)» с поселенцем (новый город ещё не основан) — если его нет, перезагрузи сохранение, чтобы мод обновился.": "No Settler found. Import a game with \"🔄 From game (live)\" while you still have a Settler (no city founded yet) — if it is missing, reload the save so the mod refreshes.",
+  "Ошибка: ": "Error: ",
+  "🚩 Где основать столицу": "🚩 Where to found the capital",
+  "<p class=\"hint\">Нет подходящих клеток в досягаемости Поселенца (1–3 хода).</p>": "<p class=\"hint\">No suitable tiles within the Settler's reach (1–3 turns).</p>",
+  "<div class=\"summary\">🚩 Где основать СТОЛИЦУ (штраф за ход {0})</div>": "<div class=\"summary\">🚩 Where to found the CAPITAL (turn penalty {0})</div>",
+  "пресная вода": "fresh water",
+  "нет пресн. воды": "no fresh water",
+  ", побережье": ", coast",
+  "ход {0}": "turn {0}",
+  " <span class=\"phase now\">лучшее</span>": " <span class=\"phase now\">best</span>",
+  "<div class=\"hint\" style=\"margin:-2px 0 4px\">{0}{1} · тайлы {2}, районы {3}</div>": "<div class=\"hint\" style=\"margin:-2px 0 4px\">{0}{1} · tiles {2}, districts {3}</div>",
+  "<div class=\"hint\" style=\"margin-top:6px\">🚩 — Поселенец. Зелёные ромбы — кандидаты под столицу (ход = когда сможешь основать). Двигай Поселенца на #1 и основывай.</div>": "<div class=\"hint\" style=\"margin-top:6px\">🚩 — Settler. Green markers — capital candidates (turn = when you can found it). Move the Settler to #1 and found the city.</div>",
+  "Ищу…": "Searching…",
+  "🏙️ Места под города": "🏙️ City sites",
+  "<p class=\"hint\">Подходящих мест не найдено (мало размеченной карты или всё занято/близко).</p>": "<p class=\"hint\">No suitable sites found (too little of the map is drawn, or everything is taken/too close).</p>",
+  "<div class=\"summary\">🏙️ Рекомендованные места под города (топ {0})</div>": "<div class=\"summary\">🏙️ Suggested city sites (top {0})</div>",
+  ", удобства {0}": ", amenities {0}",
+  "<div class=\"hint\" style=\"margin:-2px 0 4px\">{0}{1} · тайлы {2}, районы {3}{4}</div>": "<div class=\"hint\" style=\"margin:-2px 0 4px\">{0}{1} · tiles {2}, districts {3}{4}</div>",
+  "<div class=\"hint\" style=\"margin-top:6px\">Зелёные клетки на карте — эти места. Поставь там центр города (⭐) и пересчитай.</div>": "<div class=\"hint\" style=\"margin-top:6px\">The green tiles on the map are these sites. Put a city center (⭐) there and run again.</div>",
+  "Нет городов. Импортируй партию или поставь центр города (⭐).": "No cities. Import a game or place a city center (⭐).",
+  "😊 Довольство": "😊 Amenities",
+  "<div class=\"summary\">😊 Довольство по городам</div>": "<div class=\"summary\">😊 Amenities by city</div>",
+  "<p class=\"hint\">нет городов</p>": "<p class=\"hint\">no cities</p>",
+  "нас. {0}": "pop. {0}",
+  "нас. ?": "pop. ?",
+  "<div class=\"hint\">{0} · нужно {1}, есть {2}, баланс {3}</div>": "<div class=\"hint\">{0} · need {1}, have {2}, balance {3}</div>",
+  "<div class=\"hint\" style=\"margin-top:6px\">Оценка: роскошь покрывает 4 самых населённых города; Парк развлечений/Аквапарк дают довольство. Чудеса/политики/религию учитывай вручную.</div>": "<div class=\"hint\" style=\"margin-top:6px\">Estimate: luxuries cover your 4 most populous cities; an Entertainment Complex/Water Park gives Amenities. Count wonders/policies/religion yourself.</div>",
+  "🏠 Жильё": "🏠 Housing",
+  "<div class=\"summary\">🏠 Жильё и рост по городам</div>": "<div class=\"summary\">🏠 Housing and growth by city</div>",
+  "<div class=\"hint\">{0} · жильё {1}, запас {2} · лучший Квартал +{3} ({4})</div>": "<div class=\"hint\">{0} · Housing {1}, headroom {2} · best Neighborhood +{3} ({4})</div>",
+  "<div class=\"hint\" style=\"margin-top:6px\">Запас &lt;5 → рост замедляется; 0 → почти остановлен. Жильё: пресная вода/Акведук, фермы/плантации, Канализация, Кварталы (по привлекательности). Здания (Амбар/Канализация) не видны — оценка снизу.</div>": "<div class=\"hint\" style=\"margin-top:6px\">Headroom &lt;5 → growth slows; 0 → almost stopped. Housing: fresh water/Aqueduct, farms/plantations, Sewer, Neighborhoods (by Appeal). Buildings (Granary/Sewer) are not visible — this is a lower bound.</div>",
+  "Поставь центр города — чудеса ищутся в твоих границах.": "Place a city center — wonders are searched inside your borders.",
+  "🏛️ Чудеса света": "🏛️ World wonders",
+  "<div class=\"summary\">🏛️ Рекомендованные чудеса света (топ {0})</div>": "<div class=\"summary\">🏛️ Suggested world wonders (top {0})</div>",
+  "<div class=\"hint\">Исключены (заняты/построены): {0} · <a href=\"#\" id=\"reset-taken\">сбросить</a></div>": "<div class=\"hint\">Excluded (taken/built): {0} · <a href=\"#\" id=\"reset-taken\">reset</a></div>",
+  "<p class=\"hint\">Нет доступных чудес на размеченной территории. Нужны подходящие клетки в твоих границах (пустыня, горы, у реки, рядом с районами и т.д.).</p>": "<p class=\"hint\">No wonders available on the drawn territory. You need suitable tiles inside your borders (desert, mountains, rivers, next to districts, etc.).</p>",
+  " · запасные: {0}": " · backups: {0}",
+  "<div class=\"hint\">место ({0},{1}) · {2} · риск ИИ: <b>{3}</b></div>": "<div class=\"hint\">site ({0},{1}) · {2} · AI risk: <b>{3}</b></div>",
+  "<div class=\"wr-actions\"><a href=\"#\" class=\"mark-taken\" data-key=\"{0}\">занято ИИ ✖</a>{1}</div>": "<div class=\"wr-actions\"><a href=\"#\" class=\"mark-taken\" data-key=\"{0}\">taken by AI ✖</a>{1}</div>",
+  "Плохой JSON: ": "Bad JSON: ",
+  "Пример не найден. Запусти scripts/build_sample.py": "Sample not found. Run scripts/build_sample.py",
+  "\nПредупреждения: {0}": "\nWarnings: {0}",
+  "Импортировано клеток: {0}.{1}": "Tiles imported: {0}.{1}",
+  "Ошибка импорта: ": "Import error: ",
+  "новые чудеса на карте (возможно, забрал ИИ): {0}": "new wonders on the map (maybe taken by the AI): {0}",
+  "занятых/чужих клеток стало больше: +{0}": "more taken/foreign tiles: +{0}",
+  "новых районов на карте: {0}": "new districts on the map: {0}",
+  "<div class=\"summary\">🔄 Изменения с прошлого обновления</div>": "<div class=\"summary\">🔄 Changes since the last refresh</div>",
+  "<div class=\"hint\">существенных изменений нет</div>": "<div class=\"hint\">no significant changes</div>",
+  "<div class=\"hint\" style=\"margin-top:6px\">Нажми «Оптимизировать» или «Чудеса света» для пересчёта по новой карте.</div>": "<div class=\"hint\" style=\"margin-top:6px\">Press \"Optimize\" or \"World wonders\" to recalculate for the new map.</div>",
+  "Live-импорт: ": "Live import: ",
+  "🔄 без изменений": "🔄 no changes",
+  "🔄 Из игры (live)": "🔄 From game (live)",
+  "Ошибка live-импорта: ": "Live import error: ",
+  "Civ 6 — оптимизатор районов": "Civ 6 District Optimizer",
+  "Civ 6 · оптимизатор районов": "Civ 6 · district optimizer",
+  "📁 Данные": "📁 Data",
+  "⬇ Импорт из игры (Lua.log)": "⬇ Import from game (Lua.log)",
+  "авто-обновление": "auto-refresh",
+  "Загрузить пример": "Load sample",
+  "📂 Открыть JSON": "📂 Open JSON",
+  "💾 Сохранить JSON": "💾 Save JSON",
+  "🗑 Очистить карту": "🗑 Clear map",
+  "Где основать столицу (по позиции Поселенца)": "Where to found the capital (from the Settler's position)",
+  "🚩 Столица": "🚩 Capital",
+  "Быстрый показ хороших мест под новые города (без раскладки районов)": "Quick look at good sites for new cities (without a district layout)",
+  "🏙️ Места городов": "🏙️ City sites",
+  "Сколько новых городов подобрать вместе с раскладкой районов. 0 — оптимизировать только текущие города.": "How many new cities to pick together with the district layout. 0 — optimize only the current cities.",
+  "+городов": "+cities",
+  "Подбирает места под новые города (поле «+городов») и оптимально раскладывает районы во всех городах сразу": "Picks sites for new cities (the \"+cities\" field) and lays out districts in all cities at once",
+  "Кисть": "Brush",
+  "ЛКМ — рисовать (можно тянуть), ПКМ — стереть в траву.": "Left click — paint (you can drag), right click — erase to grassland.",
+  "Легенда": "Legend",
+  "Приблизить": "Zoom in",
+  "Отдалить": "Zoom out",
+  "Вписать карту": "Fit the map",
+  "колесо — зум · средняя кнопка / Shift+ЛКМ — двигать карту": "wheel — zoom · middle button / Shift+left click — move the map",
+  "Цивилизация и лидер": "Civilization and leader",
+  "Цивилизация": "Civilization",
+  "Лидер": "Leader",
+  "🎯 Применить фокус победы": "🎯 Apply victory focus",
+  "Разрешённый пул районов": "Allowed district pool",
+  "Оптимизатор сам распределяет районы по городам под выбранную победу (специализация). Здесь — какие типы вообще разрешены; сними галочку, чтобы исключить тип из всей империи.": "The optimizer spreads districts across cities for your chosen victory (specialisation). Here you choose which types are allowed at all; untick one to exclude it from the whole empire.",
+  "Религия": "Religion",
+  "Пантеон": "Pantheon",
+  "Тайное общество": "Secret society",
+  "Основатель": "Founder",
+  "Последователь": "Follower",
+  "Молитв. здание": "Worship",
+  "Усилитель": "Enhancer",
+  "👑 Губернаторы рекомендуются по городам — смотри в результатах.": "👑 Governors are suggested per city — see the results.",
+  "Политики (карты политик)": "Policies (policy cards)",
+  "Тонкая настройка": "Fine tuning",
+  "Веса выходов": "Yield weights",
+  "Беречь хорошие клетки": "Keep good tiles",
+  "Главный рычаг плотности связок районов.": "The main lever for how tightly districts cluster.",
+  "Меньше → плотнее комбинации": "Lower → tighter clusters",
+  "(районы кучкуются и бустят друг друга, в т.ч. на стыке городов): 0 — максимальные связки, не жалея клеток. Больше — бережёт ценные клетки (ресурсы/поймы/холмы) под обработку, но районы расходятся. По умолчанию 0.3 — уклон в связки.": "(districts bunch up and boost each other, including across city borders): 0 — maximum clustering, tiles are not spared. Higher — keeps valuable tiles (resources/floodplains/hills) free to work, but districts spread out. Default 0.3 leans towards clusters.",
+  "Региональное перекрытие": "Regional overlap",
+  "Промзона (Фабрика/ТЭС) и Парк развлечений/Аквапарк (Зоопарк/Стадион) действуют на города в радиусе 6 — оптимизатор охотнее ставит их на стыке. Работает для нескольких городов.": "The Industrial Zone (Factory/Power Plant) and the Entertainment Complex/Water Park (Zoo/Stadium) reach cities within 6 tiles — the optimizer is more willing to put them on city borders. Works with several cities.",
+  "Первый город: штраф за ход": "First city: turn penalty",
+  "Сколько «стоит» потерянный ход при переезде Поселенца под столицу. Больше — охотнее селиться на месте/ближе.": "How much each lost turn of moving the Settler to the capital site \"costs\". Higher — more willing to settle in place/nearby.",
+  "Результат": "Result",
+  "Поставь центр города, нарисуй карту (или импортируй из игры) и нажми «Оптимизировать».": "Place a city center, draw the map (or import it from the game) and press \"Optimize\".",
+  "Луга": "Grassland",
+  "Равнины": "Plains",
+  "Пустыня": "Desert",
+  "Тундра": "Tundra",
+  "Снег": "Snow",
+  "Горы": "Mountains",
+  "Прибрежные": "Coast",
+  "Океан": "Ocean",
+  "Озеро": "Lake",
+  "Центр города": "City Center",
+  "Кампус": "Campus",
+  "Святое место": "Holy Site",
+  "Театральная площадь": "Theater Square",
+  "Центр коммерции": "Commercial Hub",
+  "Гавань": "Harbor",
+  "Промышленная зона": "Industrial Zone",
+  "Акведук": "Aqueduct",
+  "Плотина": "Dam",
+  "Канал": "Canal",
+  "Развлекательный комплекс": "Entertainment Complex",
+  "Аквапарк": "Water Park",
+  "Военный лагерь": "Encampment",
+  "Правительственная площадь": "Government Plaza",
+  "Пригород": "Neighborhood",
+  "Аэродром": "Aerodrome",
+  "Космопорт": "Spaceport",
+  "Заповедник": "Preserve",
+  "Дипломатический квартал": "Diplomatic Quarter",
+  "Лес": "Woods",
+  "Тропики": "Rainforest",
+  "Болото": "Marsh",
+  "Пойма": "Floodplains",
+  "Оазис": "Oasis",
+  "Риф": "Reef",
+  "Лёд": "Ice",
+  "Гейзер": "Geothermal fissure",
+  "Вулк. почва": "Volcanic soil",
+  "Чудо природы": "Natural wonder",
+  "Шахта": "Mine",
+  "Карьер": "Quarry",
+  "Ферма": "Farm",
+  "Пастбище": "Pasture",
+  "Плантация": "Plantation",
+  "Лесопилка": "Lumber Mill",
+  "Рыбол. лодки": "Fishing Boats",
+  "бонусный": "bonus",
+  "роскошь": "luxury",
+  "стратегический": "strategic",
+  "чужая цивилизация": "foreign civilization",
+  "город-государство": "city-state",
+  "вольный город": "free city",
+  "варвары": "barbarians",
+  "научная": "science",
+  "культурная": "culture",
+  "военная (доминирование)": "military (domination)",
+  "религиозная": "religious",
+  "дипломатическая": "diplomatic",
+  "экономическая": "economic"
+}/*END_I18N_EN*/;
+
+// Translate a Russian source string into the current language and fill {0}, {1}, ...
+function tr(text, ...args) {
+  const s = (LANG === "en" && I18N_EN[text]) || text;
+  return args.length ? s.replace(/\{(\d+)\}/g, (m, i) => (args[i] === undefined ? m : args[i])) : s;
+}
+// Look up a key in a Russian name table (DISTRICT_NAME etc.) and translate it.
+function nm(table, k) { return table[k] ? tr(table[k]) : k; }
+
+// fetch() that tells the API which language to answer in.
+function apiFetch(url, opts = {}) {
+  return fetch(url, { ...opts, headers: { ...(opts.headers || {}), "X-Lang": LANG } });
+}
+
+// Translate the static text of index.html. The Russian originals are remembered, so the
+// page can be switched back and forth without a reload.
+const _domOriginal = new WeakMap();
+const _attrOriginal = new WeakMap();
+function localizeDom(root = document.body) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+    if (n.parentElement && n.parentElement.closest("select, script, style")) continue;
+    if (!_domOriginal.has(n)) {
+      const raw = n.nodeValue.replace(/\s+/g, " ").trim();
+      if (!raw || !(raw in I18N_EN)) continue;
+      _domOriginal.set(n, n.nodeValue);
+    }
+    const orig = _domOriginal.get(n);
+    const raw = orig.replace(/\s+/g, " ").trim();
+    n.nodeValue = LANG === "en" ? orig.replace(raw, I18N_EN[raw]) : orig;
+  }
+  root.querySelectorAll("[title]").forEach((el) => {
+    if (!_attrOriginal.has(el)) {
+      if (!(el.title in I18N_EN)) return;
+      _attrOriginal.set(el, el.title);
+    }
+    el.title = tr(_attrOriginal.get(el));
+  });
+  document.title = tr("Civ 6 — оптимизатор районов");
+  document.documentElement.lang = LANG;
+}

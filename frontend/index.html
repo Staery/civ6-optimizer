@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Civ 6 — оптимизатор районов</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Civ 6 · оптимизатор районов</h1>
+    <div class="actions">
+      <!-- data / IO actions tucked into a dropdown -->
+      <details class="menu">
+        <summary>📁 Данные</summary>
+        <div class="menu-list">
+          <button id="btn-import">⬇ Импорт из игры (Lua.log)</button>
+          <button id="btn-live">🔄 Из игры (live)</button>
+          <label class="auto-lbl"><input type="checkbox" id="chk-auto" /> авто-обновление</label>
+          <hr />
+          <button id="btn-sample">Загрузить пример</button>
+          <button id="btn-load">📂 Открыть JSON</button>
+          <button id="btn-save">💾 Сохранить JSON</button>
+          <hr />
+          <button id="btn-clear">🗑 Очистить карту</button>
+        </div>
+      </details>
+
+      <span class="tb-sep"></span>
+
+      <!-- primary workflow -->
+      <button id="btn-first-city" title="Где основать столицу (по позиции Поселенца)">🚩 Столица</button>
+      <button id="btn-settle" title="Быстрый показ хороших мест под новые города (без раскладки районов)">🏙️ Места городов</button>
+      <span class="tb-sep"></span>
+      <label class="auto-lbl" title="Сколько новых городов подобрать вместе с раскладкой районов. 0 — оптимизировать только текущие города.">+городов <input type="number" id="plan-count" min="0" max="25" value="5" /></label>
+      <button id="btn-optimize" class="primary" title="Подбирает места под новые города (поле «+городов») и оптимально раскладывает районы во всех городах сразу">▶ Оптимизировать</button>
+
+      <span class="tb-sep"></span>
+      <div class="lang-switch" id="lang-switch" role="group" aria-label="Language">
+        <button data-lang="ru" title="Русский">RU</button>
+        <button data-lang="en" title="English">EN</button>
+      </div>
+
+      <input type="file" id="file-input" accept="application/json" hidden />
+      <input type="file" id="lua-input" accept=".log,text/plain" hidden />
+    </div>
+  </header>
+
+  <main>
+    <!-- left: paint palette + legend -->
+    <aside id="palette">
+      <h2>Кисть</h2>
+      <div id="tool-groups"></div>
+      <p class="hint">ЛКМ — рисовать (можно тянуть), ПКМ — стереть в траву.</p>
+      <details class="sect legend-sect" open>
+        <summary>Легенда</summary>
+        <div class="sect-body">
+          <div class="legend" id="legend"></div>
+        </div>
+      </details>
+    </aside>
+
+    <!-- center: canvas -->
+    <section id="board">
+      <canvas id="hex" width="840" height="720"></canvas>
+      <div id="zoom-controls">
+        <button id="btn-zoom-in" title="Приблизить">＋</button>
+        <button id="btn-zoom-out" title="Отдалить">－</button>
+        <button id="btn-zoom-fit" title="Вписать карту">⤢</button>
+      </div>
+      <div id="coord-readout"></div>
+      <div id="nav-hint">колесо — зум · средняя кнопка / Shift+ЛКМ — двигать карту</div>
+    </section>
+
+    <!-- right: setup + results -->
+    <aside id="setup">
+      <details class="sect" open>
+        <summary>Цивилизация и лидер</summary>
+        <div class="sect-body">
+          <label class="fld">Цивилизация<select id="civ-select"></select></label>
+          <p class="hint" id="civ-note"></p>
+          <label class="fld">Лидер<select id="leader-select"></select></label>
+          <p class="hint" id="leader-note"></p>
+          <div id="focus-box">
+            <p class="hint" id="focus-line"></p>
+            <button id="btn-apply-focus">🎯 Применить фокус победы</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="sect" open>
+        <summary>Разрешённый пул районов</summary>
+        <div class="sect-body">
+          <p class="hint" style="margin-top:0">Оптимизатор сам распределяет районы по городам под выбранную победу (специализация). Здесь — какие типы вообще разрешены; сними галочку, чтобы исключить тип из всей империи.</p>
+          <div id="district-picker" class="checks"></div>
+        </div>
+      </details>
+
+      <details class="sect">
+        <summary>Религия</summary>
+        <div class="sect-body">
+          <label class="fld">Пантеон<select id="pantheon-select"></select></label>
+          <p class="hint" id="pantheon-note"></p>
+          <div class="advice" id="pantheon-advice"></div>
+          <label class="fld">Тайное общество<select id="secret-select"></select></label>
+          <p class="hint" id="secret-note"></p>
+          <div class="grid2">
+            <label class="fld">Основатель<select id="belief-founder"></select></label>
+            <label class="fld">Последователь<select id="belief-follower"></select></label>
+            <label class="fld">Молитв. здание<select id="belief-worship"></select></label>
+            <label class="fld">Усилитель<select id="belief-enhancer"></select></label>
+          </div>
+          <div class="advice" id="belief-advice"></div>
+          <p class="hint">👑 Губернаторы рекомендуются по городам — смотри в результатах.</p>
+        </div>
+      </details>
+
+      <details class="sect">
+        <summary>Политики (карты политик)</summary>
+        <div class="sect-body">
+          <div id="modifier-picker" class="checks"></div>
+          <div class="advice" id="policy-advice"></div>
+        </div>
+      </details>
+
+      <details class="sect">
+        <summary>Тонкая настройка</summary>
+        <div class="sect-body">
+          <h3>Веса выходов</h3>
+          <div id="weights"></div>
+
+          <h3>Беречь хорошие клетки <b id="oc-val">0.3</b></h3>
+          <div id="oc-control">
+            <input type="range" id="oc-weight" min="0" max="1.5" step="0.1" value="0.3" />
+          </div>
+          <p class="hint">Главный рычаг плотности связок районов. <b>Меньше → плотнее комбинации</b> (районы кучкуются и бустят друг друга, в т.ч. на стыке городов): 0 — максимальные связки, не жалея клеток. Больше — бережёт ценные клетки (ресурсы/поймы/холмы) под обработку, но районы расходятся. По умолчанию 0.3 — уклон в связки.</p>
+
+          <h3>Региональное перекрытие <b id="region-val">0.6</b></h3>
+          <div id="region-control">
+            <input type="range" id="region-weight" min="0" max="1.5" step="0.1" value="0.6" />
+          </div>
+          <p class="hint">Промзона (Фабрика/ТЭС) и Парк развлечений/Аквапарк (Зоопарк/Стадион) действуют на города в радиусе 6 — оптимизатор охотнее ставит их на стыке. Работает для нескольких городов.</p>
+
+          <h3>Первый город: штраф за ход <b id="tp-val">2</b></h3>
+          <div id="tp-control">
+            <input type="range" id="turn-penalty" min="0" max="5" step="0.5" value="2" />
+          </div>
+          <p class="hint">Сколько «стоит» потерянный ход при переезде Поселенца под столицу. Больше — охотнее селиться на месте/ближе.</p>
+        </div>
+      </details>
+
+      <h2 class="result-h">Результат</h2>
+      <div id="result"><p class="hint">Поставь центр города, нарисуй карту (или импортируй из игры) и нажми «Оптимизировать».</p></div>
+    </aside>
+  </main>
+
+  <script src="/static/i18n.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
