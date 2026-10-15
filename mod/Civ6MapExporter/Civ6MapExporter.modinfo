@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Mod id="a7e2c9d1-civ6opt-map-exporter" version="1" xmlns="ModInfo">
+  <Properties>
+    <Name>Civ6 Optimizer - Map Exporter</Name>
+    <Description>Dumps the current map to Lua.log (lines tagged CIV6OPT) so the civ6-optimizer tool can import the real game map. Does not affect gameplay.</Description>
+    <Authors>Staery</Authors>
+    <AffectsSavedGames>0</AffectsSavedGames>
+  </Properties>
+  <ActionCriteria>
+    <Criteria id="always">
+      <AlwaysMet/>
+    </Criteria>
+  </ActionCriteria>
+  <Files>
+    <File>MapExporter.lua</File>
+  </Files>
+  <InGameActions>
+    <AddGameplayScripts id="Civ6OptMapExporter" criteria="always">
+      <File>MapExporter.lua</File>
+    </AddGameplayScripts>
+  </InGameActions>
+</Mod>
