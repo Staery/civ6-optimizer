@@ -1,0 +1,32 @@
+[project]
+name = "civ6-optimizer"
+version = "0.1.0"
+description = "Civ 6 district & city placement optimizer (adjacency-maximizing)"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Staery" }]
+requires-python = ">=3.11"
+keywords = ["civilization-vi", "civ6", "optimizer", "adjacency", "hex-grid", "fastapi"]
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+]
+
+[project.urls]
+Homepage = "https://github.com/Staery/civ6-optimizer"
+
+[project.optional-dependencies]
+# Optional accelerated solver backend. The pure-Python optimizer works without it.
+solver = ["ortools>=9.8"]
+dev = ["pytest>=8.0"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["backend"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

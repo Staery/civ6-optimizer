@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Tooling
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Runtime
+*.log
+
+# Personal notes (local Steam Workshop mod list)
+data/installed_mods.md
+
+# Editors / OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
